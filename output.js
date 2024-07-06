@@ -1,4 +1,4 @@
-//Sat Jul 06 2024 05:29:45 GMT+0000 (Coordinated Universal Time)
+//Sat Jul 06 2024 05:59:08 GMT+0000 (Coordinated Universal Time)
 //Base:https://github.com/echo094/decode-js
 //Modify:https://github.com/smallfawn/decode_action
 let mode = __dirname.includes("Work");
@@ -30,7 +30,11 @@ let wxJcTypes = [0, 1, 8, 17],
   jinggengJcTypes = ["COUPON", "JD_D_COUPON", "JD_COUPON"],
   blackLuckDrawRule = (process.env.M_WX_BLACK_LUCK_DRAW_RULE || "FITURE|FITURE").split(/[@,&|]/).join("|"),
   openCardTypes = ["10033", "10006", "10043", "10052", "10068"];
-process.env.M_WX_OPEN_CARD_TYPES ? process.env.M_WX_OPEN_CARD_TYPES.split(/[@,&|]/).forEach(i11lIliI => openCardTypes.push(i11lIliI)) : "";
+if (process.env.M_WX_OPEN_CARD_TYPES) {
+  process.env.M_WX_OPEN_CARD_TYPES.split(/[@,&|]/).forEach(i11lIliI => openCardTypes.push(i11lIliI));
+} else {
+  "";
+}
 const redisUrl = process.env.M_REDIS_URL || "redis://:.T]x;M!()G^-0ckrBPoWCNln3@@172.17.0.1:6379/0",
   redis = new Redis(redisUrl, {
     "keyPrefix": "magic:"
@@ -41,14 +45,18 @@ const hdbTypes = ["hdb-isv.isvjcloud.com", "jingyun-rc.isvjcloud.com"],
   jinggengcjTypes = ["jinggengjcq-isv.isvjcloud.com", "mpdz-act-dz.isvjcloud.com"],
   keywords = ["pps", "utm_campaign", "utm_term", "utm_source", "utm_medium", "teamId", "mpin", "shareUuid", "signUuid", "inviterNick", "inviter", "InviteUuid", "inviterNickName", "sharer", "inviterImg", "nickName", "nick", "friendUuid", "helpUuid", "shareuserid4minipg", "bizExtString", "invitePin", "pps", "cookie", "friendid", "bizExtString", "bizExtString", "koikey", "jd_env_info", "inviter_id", "invitePin", "portrait", "sid", "shareUserId", "_ts", "tttparams", "pps", "pps", "DEBUG", "shareOpenId", "jxsid", "ad_od", "token", "pps", "encryptOpenId", "gx", "gxd", "accessToken"];
 let ckms = new Map();
-Object.keys(jdCookieNode).length > 0 && Object.keys(jdCookieNode).forEach(illi11l => {
-  let l1illli = jdCookieNode[illi11l]?.["match"](/pt_pin=([\w\-\%]+)/)[1];
-  ckms.set(l1illli, jdCookieNode[illi11l]);
-});
+if (Object.keys(jdCookieNode).length > 0) {
+  Object.keys(jdCookieNode).forEach(illi11l => {
+    let l1illli = jdCookieNode[illi11l]?.["match"](/pt_pin=([\w\-\%]+)/)[1];
+    ckms.set(l1illli, jdCookieNode[illi11l]);
+  });
+}
 try {
   let paths = process.env?.["M_COOKIE_FILE_PATHS"]?.["split"](/[@,&|]/) || "/home/magic/Work/wools/magic/cks.txt".split(/[@,&|]/);
   for (let path of paths) {
-    if (!fs.existsSync(path)) continue;
+    if (!fs.existsSync(path)) {
+      continue;
+    }
     let cks = fs.readFileSync(path).toString().split("\n");
     for (let ck of cks) {
       try {
@@ -56,7 +64,9 @@ try {
           ck = ck.trim().replace("\n", "");
           let _pt_key = ck.match(/pt_key=([\w\-]+)/)?.[1],
             _pt_pin = ck.match(/pt_pin=([\w\-\%]+)/)?.[1];
-          if (!_pt_key || !_pt_pin) continue;
+          if (!_pt_key || !_pt_pin) {
+            continue;
+          }
           ckms.set(_pt_pin, "pt_key=" + _pt_key + ";pt_pin=" + _pt_pin + ";");
         }
       } catch (il1iil) {}
@@ -68,7 +78,9 @@ let cookies = Array.from(ckms.values()).filter(I1lliiIl => I1lliiIl.includes("pt
   proxies = [];
 for (let i = 0; i < 20; i++) {
   try {
-    if (!process.env["M_WX_PROXY_POOL_URL" + (i || "")]) continue;
+    if (!process.env["M_WX_PROXY_POOL_URL" + (i || "")]) {
+      continue;
+    }
     proxies.push({
       "index": i + 1,
       "url": process.env["M_WX_PROXY_POOL_URL" + (i || "")],
@@ -200,38 +212,62 @@ class Env {
     while (leaders.filter(lll11l1l => !lll11l1l.finish).length === 0 && leaders.filter(l1ili1II => l1ili1II.finish).length !== this.masterNum && !this.isMaster() && !this.super.exit) {
       await this.wait(200, 300);
     }
-    !this.isMaster() && leaders.filter(I11Ili1I => I11Ili1I.finish === true).length === this.masterNum && (this.putMsg("全部完成"), this.super.exit = true);
+    if (!this.isMaster() && leaders.filter(I11Ili1I => I11Ili1I.finish === true).length === this.masterNum) {
+      this.putMsg("全部完成");
+      this.super.exit = true;
+    }
     this.super.currentLeader = leaders.filter(i1lI1IiI => i1lI1IiI.finish === false)?.[0] || {};
     this.super.shareUserId = this.super.currentLeader?.["shareUserId"] || "";
-    !this.super.shareUserId && (this.putMsg("已无车头"), this.super.exit = true);
-    if (this.super.exit) throw new CustomError("逻辑退出");
+    if (!this.super.shareUserId) {
+      this.putMsg("已无车头");
+      this.super.exit = true;
+    }
+    if (this.super.exit) {
+      throw new CustomError("逻辑退出");
+    }
   }
   async ["countdown"](ili1l11i = 1, liilI1ii = 200) {
     let ll1iilIi = new Date();
-    if (ili1l11i === 1 && ll1iilIi.getMinutes() < 50 || ili1l11i === 2 && ll1iilIi.getMinutes() < 25 || ili1l11i === 3 && ll1iilIi.getMinutes() < 10 || ili1l11i === 4 && ll1iilIi.getMinutes() < 5) return;
+    if (ili1l11i === 1 && ll1iilIi.getMinutes() < 50 || ili1l11i === 2 && ll1iilIi.getMinutes() < 25 || ili1l11i === 3 && ll1iilIi.getMinutes() < 10 || ili1l11i === 4 && ll1iilIi.getMinutes() < 5) {
+      return;
+    }
     let i1II1iii = liilI1ii;
     if (ili1l11i !== 9) {
       switch (ili1l11i) {
         case 1:
-          ll1iilIi.setHours(ll1iilIi.getHours() + 1), ll1iilIi.setMinutes(0);
-          break;
+          {
+            ll1iilIi.setHours(ll1iilIi.getHours() + 1);
+            ll1iilIi.setMinutes(0);
+            break;
+          }
         case 2:
-          ll1iilIi.setMinutes(30);
-          break;
+          {
+            ll1iilIi.setMinutes(30);
+            break;
+          }
         case 3:
-          ll1iilIi.setMinutes(15);
-          break;
+          {
+            ll1iilIi.setMinutes(15);
+            break;
+          }
         case 4:
-          ll1iilIi.setMinutes(10);
-          break;
+          {
+            ll1iilIi.setMinutes(10);
+            break;
+          }
         default:
-          console.log("不支持");
+          {
+            console.log("不支持");
+          }
       }
       ll1iilIi.setSeconds(0);
       ll1iilIi.setMilliseconds(0);
       i1II1iii = ll1iilIi.getTime() - Date.now() - liilI1ii;
     }
-    i1II1iii > 0 && (console.log("需要等待时间" + i1II1iii / 1000 + " 秒"), await this.wait(i1II1iii));
+    if (i1II1iii > 0) {
+      console.log("需要等待时间" + i1II1iii / 1000 + " 秒");
+      await this.wait(i1II1iii);
+    }
   }
   ["buildAxios"]() {
     this.axios = axios.create({
@@ -242,20 +278,28 @@ class Env {
     this.axios.defaults.proxy = false;
     this.axios.defaults.shouldRetry = async liii1Iil => {
       let II1ilIIl = liii1Iil.response?.["status"];
-      if ([403, 404, 407].includes(II1ilIIl)) return false;
+      if ([403, 404, 407].includes(II1ilIIl)) {
+        return false;
+      }
       return false;
     };
     this.axios.interceptors.response.use(function (lliI1iii) {
       return lliI1iii;
     }, function (Ii1liIIi) {
       let iiIIllIl = Ii1liIIi.config;
-      if (!iiIIllIl || !iiIIllIl.retry) return Promise.reject(Ii1liIIi);
-      if (!iiIIllIl.shouldRetry || typeof iiIIllIl.shouldRetry != "function") return Promise.reject(Ii1liIIi);
+      if (!iiIIllIl || !iiIIllIl.retry) {
+        return Promise.reject(Ii1liIIi);
+      }
+      if (!iiIIllIl.shouldRetry || typeof iiIIllIl.shouldRetry != "function") {
+        return Promise.reject(Ii1liIIi);
+      }
       if (!iiIIllIl.shouldRetry(Ii1liIIi)) {
         return Promise.reject(Ii1liIIi);
       }
       iiIIllIl.__retryCount = iiIIllIl.__retryCount || 0;
-      if (iiIIllIl.__retryCount >= iiIIllIl.retry) return Promise.reject(Ii1liIIi);
+      if (iiIIllIl.__retryCount >= iiIIllIl.retry) {
+        return Promise.reject(Ii1liIIi);
+      }
       iiIIllIl.__retryCount += 1;
       let lil1iIlI = new Promise(function (ll1iIlI) {
         setTimeout(function () {
@@ -296,10 +340,16 @@ class Env {
           }
         }
         if (this.activityUrl.includes("isvjcloud")) {
-          if (blackPinConfig[this.domain]?.["includes"](iiiilIli)) continue;
-          if (blackPinConfig["*"]?.["includes"](iiiilIli)) continue;
+          if (blackPinConfig[this.domain]?.["includes"](iiiilIli)) {
+            continue;
+          }
+          if (blackPinConfig["*"]?.["includes"](iiiilIli)) {
+            continue;
+          }
         }
-        this.masterPins.includes(iiiilIli) && this.masterNum++;
+        if (this.masterPins.includes(iiiilIli)) {
+          this.masterNum++;
+        }
         Ilillll.push(iI1iiiii);
       }
       cookies = Ilillll;
@@ -347,14 +397,20 @@ class Env {
     return new Date().getTime();
   }
   ["__lt"](i1li1iII) {
-    if (this.is100V2Type) return;
+    if (this.is100V2Type) {
+      return;
+    }
     let IIilliiI = i1li1iII?.["headers"]["set-cookie"] || i1li1iII?.["headers"]["Set-Cookie"] || [],
       l1llil1l = typeof IIilliiI != "object" ? IIilliiI.split(",") : IIilliiI;
     l1llil1l.forEach(ilIiliI1 => {
       let iiIllliI = ilIiliI1.split(";")[0].match(/^(.*?)=(.*)$/);
-      iiIllliI && this.tickets.set(iiIllliI[1].trim(), iiIllliI[2].trim());
+      if (iiIllliI) {
+        this.tickets.set(iiIllliI[1].trim(), iiIllliI[2].trim());
+      }
     });
-    this.tickets && (this.ticket = Array.from(this.tickets, ([iIiii11I, iIIIi11i]) => iIiii11I + "=" + iIIIi11i).join(";") + ";");
+    if (this.tickets) {
+      this.ticket = Array.from(this.tickets, ([iIiii11I, iIIIi11i]) => iIiii11I + "=" + iIIIi11i).join(";") + ";";
+    }
   }
   async ["request"](I1llI1, lIiI1ll, I1I1iIl) {
     return new Promise((ll1iiiII, l1liilll) => {
@@ -424,17 +480,31 @@ class Env {
   }
   async ["wx100V2Login"]() {}
   async ["login"](IIiliIi = {}) {
-    if (this.super.ext) return;
+    if (this.super.ext) {
+      return;
+    }
     await this.routerProxy();
     await this.isvObfuscator();
-    if (this.is100V2Type) await this.wx100V2Login();else {
-      if (hdbTypes.includes(this.domain)) await this.hdbLogin();else {
-        if (new RegExp("activityType=").test(this.activityUrl)) await this.wx100Login();else {
-          if (new RegExp("(lzkj|cjhy)").test(this.activityUrl)) await this.wxLogin();else {
-            if (this.activityUrl.includes("gzsl-isv.isvjcloud.com")) return await this.gzslLogin(IIiliIi);else {
+    if (this.is100V2Type) {
+      await this.wx100V2Login();
+    } else {
+      if (hdbTypes.includes(this.domain)) {
+        await this.hdbLogin();
+      } else {
+        if (new RegExp("activityType=").test(this.activityUrl)) {
+          await this.wx100Login();
+        } else {
+          if (new RegExp("(lzkj|cjhy)").test(this.activityUrl)) {
+            await this.wxLogin();
+          } else {
+            if (this.activityUrl.includes("gzsl-isv.isvjcloud.com")) {
+              return await this.gzslLogin(IIiliIi);
+            } else {
               if (jinggengTypes.includes(this.domain)) {
                 return await this.jinggengLogin(IIiliIi);
-              } else /lzdz4-isv/.test(this.activityUrl) ? await this.lzdz4Login() : this.log("传统无线");
+              } else {
+                /lzdz4-isv/.test(this.activityUrl) ? await this.lzdz4Login() : this.log("传统无线");
+              }
             }
           }
         }
@@ -458,14 +528,20 @@ class Env {
   }
   async ["wxJC"]() {
     let lliI111l = (this.super.prizeList || []).length;
-    if (this.isTeamRunMode() || this.isMaster() || lliI111l === 0) return;
+    if (this.isTeamRunMode() || this.isMaster() || lliI111l === 0) {
+      return;
+    }
     let i1IIIlI1 = false;
     if (hdbTypes.includes(this.domain)) {} else {
       if (new RegExp("activityType=").test(this.activityUrl)) {
         i1IIIlI1 = this.super.prizeList?.["filter"](llIliIIl => wx100JcTypes.includes(llIliIIl.prizeType))["length"] === lliI111l;
       } else {
-        if (new RegExp("(lzkj|cjhy)").test(this.activityUrl)) i1IIIlI1 = this.super.prizeList?.["filter"](ii1i11ii => wxJcTypes.includes((ii1i11ii.type || ii1i11ii.giftType) * 1))["length"] === lliI111l;else {
-          if (this.activityUrl.includes("gzsl-isv.isvjcloud.com")) {} else jinggengTypes.includes(this.domain) ? i1IIIlI1 = this.super.prizeList?.["filter"](l1i1li11 => jinggengJcTypes.includes(l1i1li11.equityType))["length"] === lliI111l : this.log("传统无线");
+        if (new RegExp("(lzkj|cjhy)").test(this.activityUrl)) {
+          i1IIIlI1 = this.super.prizeList?.["filter"](ii1i11ii => wxJcTypes.includes((ii1i11ii.type || ii1i11ii.giftType) * 1))["length"] === lliI111l;
+        } else {
+          if (this.activityUrl.includes("gzsl-isv.isvjcloud.com")) {} else {
+            jinggengTypes.includes(this.domain) ? i1IIIlI1 = this.super.prizeList?.["filter"](l1i1li11 => jinggengJcTypes.includes(l1i1li11.equityType))["length"] === lliI111l : this.log("传统无线");
+          }
         }
       }
     }
@@ -477,7 +553,11 @@ class Env {
   ["randomPattern"](lll1li, iIi1IiI = "abcdef0123456789") {
     let III1iiI1 = "";
     for (let i11l1l1I of lll1li) {
-      if (i11l1l1I == "x") III1iiI1 += iIi1IiI.charAt(Math.floor(Math.random() * iIi1IiI.length));else i11l1l1I == "X" ? III1iiI1 += iIi1IiI.charAt(Math.floor(Math.random() * iIi1IiI.length)).toUpperCase() : III1iiI1 += i11l1l1I;
+      if (i11l1l1I == "x") {
+        III1iiI1 += iIi1IiI.charAt(Math.floor(Math.random() * iIi1IiI.length));
+      } else {
+        i11l1l1I == "X" ? III1iiI1 += iIi1IiI.charAt(Math.floor(Math.random() * iIi1IiI.length)).toUpperCase() : III1iiI1 += i11l1l1I;
+      }
     }
     return III1iiI1;
   }
@@ -505,14 +585,30 @@ class Env {
     this.log(i1I1iIll);
     await this.isBlackShop(this.super.shopName);
     await this.actTimeParser(this.super.rule);
-    this.super.prizeList.length === 0 && (await this.getPrizeList(l11IlIlI));
-    this.super.actStartTime > this.timestamp() && (this.putMsg("活动未开始"), this.super.exit = true);
-    this.super.actEndTime < this.timestamp() && (this.putMsg("活动已结束"), this.super.exit = true);
+    if (this.super.prizeList.length === 0) {
+      await this.getPrizeList(l11IlIlI);
+    }
+    if (this.super.actStartTime > this.timestamp()) {
+      this.putMsg("活动未开始");
+      this.super.exit = true;
+    }
+    if (this.super.actEndTime < this.timestamp()) {
+      this.putMsg("活动已结束");
+      this.super.exit = true;
+    }
     const lI1i1Iii = this.super.prizeList.filter(IIlil1li => !["JD_COUPON", "JD_D_COUPON", "COUPON"].includes(IIlil1li.equityType) && IIlil1li.availableQuantity > 0);
-    lI1i1Iii.length === 0 && (this.putMsg("垃圾或领完"), this.super.exit = true);
-    this.super.blackLuckDrawRule && new RegExp("(" + this.blackLuckDrawRule + ")").test(this.super.shopName) && (this.super.exit = true, this.putMsg("垃圾或领完"));
+    if (lI1i1Iii.length === 0) {
+      this.putMsg("垃圾或领完");
+      this.super.exit = true;
+    }
+    if (this.super.blackLuckDrawRule && new RegExp("(" + this.blackLuckDrawRule + ")").test(this.super.shopName)) {
+      this.super.exit = true;
+      this.putMsg("垃圾或领完");
+    }
     await this.wxJC();
-    if (this.super.exit) throw new CustomError("垃圾或领完");
+    if (this.super.exit) {
+      throw new CustomError("垃圾或领完");
+    }
     return l11IlIlI;
   }
   async ["gzslLogin"](III1Iill) {
@@ -535,10 +631,19 @@ class Env {
     this.super.actStartTime = lIlilli.activity.startTime;
     this.super.actEndTime = lIlilli.activity.endTime;
     await this.isBlackShop(this.super.shopName);
-    this.super.actStartTime > this.timestamp() && (this.putMsg("活动未开始"), this.super.exit = true);
-    this.super.actEndTime < this.timestamp() && (this.putMsg("活动已结束"), this.super.exit = true);
+    if (this.super.actStartTime > this.timestamp()) {
+      this.putMsg("活动未开始");
+      this.super.exit = true;
+    }
+    if (this.super.actEndTime < this.timestamp()) {
+      this.putMsg("活动已结束");
+      this.super.exit = true;
+    }
     let lIIi1Ill = this.super.prizeList.filter(lil1ll1 => ["1", "3", "4"].includes(lil1ll1.source));
-    lIIi1Ill.length === 0 && (this.putMsg("垃圾或领完"), this.super.exit = true);
+    if (lIIi1Ill.length === 0) {
+      this.putMsg("垃圾或领完");
+      this.super.exit = true;
+    }
     if (this.super.exit) {
       throw new CustomError("逻辑退出");
     }
@@ -546,13 +651,27 @@ class Env {
   }
   async ["getAwardText"](i1iI1Iil) {
     let IIil11li = "";
-    if (i1iI1Iil.awardType == "JD_GOODS") IIil11li = i1iI1Iil.awardName + " " + i1iI1Iil.awardDenomination * 1 + "元";else {
-      if (i1iI1Iil.awardType == "JD_POINT") IIil11li = i1iI1Iil.awardDenomination * 1 + "积分";else {
-        if (i1iI1Iil.awardType == "JD_COUPON" || i1iI1Iil.awardType == "JD_D_COUPON") IIil11li = i1iI1Iil.awardDenomination * 1 + "元券";else {
-          if (i1iI1Iil.awardType == "JD_BEAN" || i1iI1Iil.awardType == "JD_MARKET") IIil11li = i1iI1Iil.awardDenomination * 1 + "豆";else {
-            if (i1iI1Iil.awardType == "JD_E_CARD") IIil11li = i1iI1Iil.assetsName;else {
-              if (i1iI1Iil.awardType == "JD_AIQIYI") IIil11li = i1iI1Iil.assetsName;else {
-                if (i1iI1Iil.awardType == "JD_REDBAG" || i1iI1Iil.awardType == "JD_RED_BAG") IIil11li = i1iI1Iil.awardDenomination * 1 + "元红包";else {
+    if (i1iI1Iil.awardType == "JD_GOODS") {
+      IIil11li = i1iI1Iil.awardName + " " + i1iI1Iil.awardDenomination * 1 + "元";
+    } else {
+      if (i1iI1Iil.awardType == "JD_POINT") {
+        IIil11li = i1iI1Iil.awardDenomination * 1 + "积分";
+      } else {
+        if (i1iI1Iil.awardType == "JD_COUPON" || i1iI1Iil.awardType == "JD_D_COUPON") {
+          IIil11li = i1iI1Iil.awardDenomination * 1 + "元券";
+        } else {
+          if (i1iI1Iil.awardType == "JD_BEAN" || i1iI1Iil.awardType == "JD_MARKET") {
+            IIil11li = i1iI1Iil.awardDenomination * 1 + "豆";
+          } else {
+            if (i1iI1Iil.awardType == "JD_E_CARD") {
+              IIil11li = i1iI1Iil.assetsName;
+            } else {
+              if (i1iI1Iil.awardType == "JD_AIQIYI") {
+                IIil11li = i1iI1Iil.assetsName;
+              } else {
+                if (i1iI1Iil.awardType == "JD_REDBAG" || i1iI1Iil.awardType == "JD_RED_BAG") {
+                  IIil11li = i1iI1Iil.awardDenomination * 1 + "元红包";
+                } else {
                   IIil11li = i1iI1Iil.awardName;
                   debugger;
                 }
@@ -565,7 +684,9 @@ class Env {
     return IIil11li;
   }
   async ["isBlackShop"](IlI1iI11 = this.super.shopName) {
-    if (!IlI1iI11) return;
+    if (!IlI1iI11) {
+      return;
+    }
     if (IlI1iI11 && blackLuckDrawRule && new RegExp("(" + blackLuckDrawRule + ")").test(IlI1iI11)) {
       this.super.exit = true;
       this.putMsg("命中店铺黑名单,垃圾或领完");
@@ -590,33 +711,51 @@ class Env {
   }
   async ["complete"]() {}
   ["formatDateString"](ilIIIl) {
-    if (ilIIIl.match(/\d{4}年\d{1,2}月\d{1,2}日\d{2}:\d{2}:\d{2}/)) return ilIIIl.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日(\d{2}:\d{2}:\d{2})/, "$1-$2-$3 $4");
+    if (ilIIIl.match(/\d{4}年\d{1,2}月\d{1,2}日\d{2}:\d{2}:\d{2}/)) {
+      return ilIIIl.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日(\d{2}:\d{2}:\d{2})/, "$1-$2-$3 $4");
+    }
     return ilIIIl;
   }
   async ["checkActivity"](ll11lIi1) {
-    this.super.prizeList.length === 0 && (await this.getPrizeList(ll11lIi1));
+    if (this.super.prizeList.length === 0) {
+      await this.getPrizeList(ll11lIi1);
+    }
     await this.actTimeParser(this.super.rule);
-    this.super.prizeList.filter(ilIilI1I => [6, 7, 9, 13, 14, 15, 16].includes((ilIilI1I.type || ilIilI1I.giftType) * 1)).length === 0 && (this.putMsg("垃圾或领完"), this.super.exit = true);
+    if (this.super.prizeList.filter(ilIilI1I => [6, 7, 9, 13, 14, 15, 16].includes((ilIilI1I.type || ilIilI1I.giftType) * 1)).length === 0) {
+      this.putMsg("垃圾或领完");
+      this.super.exit = true;
+    }
     if (this.super.actStartTime && this.super.actStartTime > this.timestamp()) {
       this.super.exit = true;
       this.putMsg("活动未开始");
     }
-    this.super.actEndTime && this.super.actEndTime < this.timestamp() && (this.super.exit = true, this.putMsg("活动已结束"));
-    if (this.super.exit) throw new CustomError("垃圾或领完");
+    if (this.super.actEndTime && this.super.actEndTime < this.timestamp()) {
+      this.super.exit = true;
+      this.putMsg("活动已结束");
+    }
+    if (this.super.exit) {
+      throw new CustomError("垃圾或领完");
+    }
     await this.wxJC();
     if (this.super.prizeList.filter(I1IliI11 => [7].includes((I1IliI11.type || I1IliI11.giftType) * 1)).length >= 1) {
       let liilillI = await this.openCard();
-      !liilillI && this.log("开卡失败");
+      if (!liilillI) {
+        this.log("开卡失败");
+      }
     }
     if (this.isMaster() && this.super.prizeList.filter(i1llIIiI => [6, 7, 13, 14, 15, 16].includes((i1llIIiI.type || i1llIIiI.giftType) * 1)).length >= 1) {
       let IIi1iIi1 = await this.openCard();
-      !IIi1iIi1 && this.log("开卡失败");
+      if (!IIi1iIi1) {
+        this.log("开卡失败");
+      }
     }
     debugger;
   }
   async ["actTimeParser"](iIliiIi = this.super.rule) {
     try {
-      if (!iIliiIi) return;
+      if (!iIliiIi) {
+        return;
+      }
       if (this.super.actStartTime) {
         return;
       }
@@ -653,14 +792,18 @@ class Env {
     let liIlIll1,
       l1ilII = M_WX_ADDRESS_MODE.toUpperCase();
     this.log("当前填地址模式: " + M_WX_ADDRESS_MODE.toUpperCase());
-    ["PIN"].includes(l1ilII) && (liIlIll1 = this.super.accounts[IIilII1i]?.["address"] || this.super.accounts[encodeURIComponent(IIilII1i)]?.["address"]);
+    if (["PIN"].includes(l1ilII)) {
+      liIlIll1 = this.super.accounts[IIilII1i]?.["address"] || this.super.accounts[encodeURIComponent(IIilII1i)]?.["address"];
+    }
     if (liIlIll1) {
       return liIlIll1;
     }
     if (["CC", "CCWAV"].includes(l1ilII)) {
       liIlIll1 = this.super.accounts["默认地址" + this.super.addressIndex]?.["address"];
     }
-    if (liIlIll1) return liIlIll1;
+    if (liIlIll1) {
+      return liIlIll1;
+    }
     let IiIlIlli = [];
     for (let IIllIili in this.super.accounts) {
       if (this.super.accounts[IIllIili]?.["address"]) {
@@ -669,10 +812,14 @@ class Env {
     }
     if (["RANGE"].includes(l1ilII)) {
       let Illlll1I = Math.min(parseInt(M_WX_ADDRESS_RANGE?.["split"]("-")?.[1] || IiIlIlli.length), IiIlIlli.length);
-      this.super.addressIndex > Illlll1I && (this.super.addressIndex = 1);
+      if (this.super.addressIndex > Illlll1I) {
+        this.super.addressIndex = 1;
+      }
       liIlIll1 = IiIlIlli[this.super.addressIndex - 1];
     }
-    if (liIlIll1) return liIlIll1;
+    if (liIlIll1) {
+      return liIlIll1;
+    }
     if (M_WX_ADDRESS_MODE_LOWER || ["RANDOM"].includes(l1ilII)) {
       return IiIlIlli[this.random(1, IiIlIlli.length) - 1];
     }
@@ -693,7 +840,9 @@ class Env {
       this.super.exit = true;
       return;
     }
-    this.super.currAddressPtpin && this.super.currAddressPtpin !== l1I1llIi && this.super.addressIndex++;
+    if (this.super.currAddressPtpin && this.super.currAddressPtpin !== l1I1llIi) {
+      this.super.addressIndex++;
+    }
     this.super.currAddressPtpin = l1I1llIi;
     let Iii1lii1 = il1iIIil || (await this.selectAddress(l1I1llIi));
     if (!Iii1lii1) {
@@ -725,7 +874,10 @@ class Env {
             "activityLogId": lIi1lii1,
             "city": Iii1lii1.city
           });
-          if (illllI1l.succ) this.putMsg("已填地址"), l1lI1111 = true;else {
+          if (illllI1l.succ) {
+            this.putMsg("已填地址");
+            l1lI1111 = true;
+          } else {
             this.putMsg(illllI1l.message);
           }
         } else {
@@ -763,13 +915,18 @@ class Env {
                 }
                 this.putMsg(iiiIlI.errorMessage);
               }
-              if (iiiIlI?.["result"]) this.putMsg("已填地址"), l1lI1111 = true;else {
+              if (iiiIlI?.["result"]) {
+                this.putMsg("已填地址");
+                l1lI1111 = true;
+              } else {
                 this.putMsg("venderId填地址失败");
                 iiiIlI = await this.api("wxAddress/save", "venderId=" + this.super.shopId + "&pin=" + Il1il1 + "&activityId=" + this.activityId + "&actType=" + this.activityType + "&prizeName=" + encodeURIComponent(ii1IIIll) + "&receiver=" + encodeURIComponent(Iii1lii1.receiver) + "&phone=" + Iii1lii1.phone + "&province=" + encodeURIComponent(Iii1lii1.province) + "&city=" + encodeURIComponent(Iii1lii1.city) + "&address=" + encodeURIComponent(Iii1lii1.address) + "&generateId=" + lIi1lii1 + "&postalCode=" + Iii1lii1.postalCode + "&areaCode=" + encodeURIComponent(Iii1lii1.areaCode) + "&county=" + encodeURIComponent(Iii1lii1.county));
                 if (iiiIlI?.["result"]) {
                   this.putMsg("已填地址");
                   l1lI1111 = true;
-                } else this.putMsg("" + iiiIlI?.["errorMessage"]);
+                } else {
+                  this.putMsg("" + iiiIlI?.["errorMessage"]);
+                }
               }
             }
           }
@@ -778,7 +935,8 @@ class Env {
     } catch (liilliIi) {
       console.log(liilliIi);
     }
-    return l1lI1111 && (await fs.appendFileSync("gifts.csv", this.now() + "," + ii1IIIll + "," + l1I1llIi + "," + Iii1lii1.phone + "," + Iii1lii1.address + "," + this.super.name + "," + iii1iIi1 + "," + this.activityUrl + "\n")), l1lI1111;
+    l1lI1111 && (await fs.appendFileSync("gifts.csv", this.now() + "," + ii1IIIll + "," + l1I1llIi + "," + Iii1lii1.phone + "," + Iii1lii1.address + "," + this.super.name + "," + iii1iIi1 + "," + this.activityUrl + "\n"));
+    return l1lI1111;
   }
   async ["getMyPing"](lll1ll11 = "customer/getMyPing", lII111i = 0) {
     try {
@@ -790,14 +948,17 @@ class Env {
           this.putMsg("商家token过期");
           throw new CustomError(iI1llil.errorMessage);
         }
-        if (lII111i < 3 && !iI1llil.errorMessage?.["includes"]("活动太火爆")) this.log("重试pin获取"), await this.getMyPing(lll1ll11, ++lII111i);else {
+        if (lII111i < 3 && !iI1llil.errorMessage?.["includes"]("活动太火爆")) {
+          this.log("重试pin获取");
+          await this.getMyPing(lll1ll11, ++lII111i);
+        } else {
           this.putMsg(iI1llil.result.errorMessage);
           return;
         }
       }
       let ilIiI11 = iI1llil.data.secretPin;
       this.nickname = iI1llil.data.nickname;
-      this.Pin = this.domain.includes("cjhy") ? encodeURIComponent(encodeURIComponent(ilIiI11)) : encodeURIComponent(ilIiI11);
+      this.domain.includes("cjhy") ? this.Pin = encodeURIComponent(encodeURIComponent(ilIiI11)) : this.Pin = encodeURIComponent(ilIiI11);
     } catch (I1ilIIlI) {
       if (I1ilIIlI instanceof CustomError) {
         throw new CustomError(I1ilIIlI.message);
@@ -805,7 +966,7 @@ class Env {
       this.putMsg(I1ilIIlI?.["message"]);
       this.nickname = this.ptpin;
       let ii1i1lII = this.tickets.get("AUTH_C_USER");
-      this.Pin = ii1i1lII || encodeURIComponent(ii1i1lII) || this.domain.includes("cjhy") ? encodeURIComponent(encodeURIComponent(ii1i1lII)) : encodeURIComponent(ii1i1lII);
+      ii1i1lII || encodeURIComponent(ii1i1lII) || this.domain.includes("cjhy") ? this.Pin = encodeURIComponent(encodeURIComponent(ii1i1lII)) : this.Pin = encodeURIComponent(ii1i1lII);
     }
   }
   async ["accessLog"](iIlIi1iI = "" + (this.domain.includes("cjhy") ? "common/accessLog" : "common/accessLogWithAD")) {
@@ -824,7 +985,10 @@ class Env {
   async ["openCard"](iII11IIi = this.super.venderId, I111I1II = 406, il1iilIl = "", i111Ii1I = 0) {
     try {
       let li111i1l = await this.isOpenCard(iII11IIi);
-      if (li111i1l) return this.log("已经开过卡了"), li111i1l;
+      if (li111i1l) {
+        this.log("已经开过卡了");
+        return li111i1l;
+      }
       if (i111Ii1I > 3) {
         return false;
       }
@@ -860,13 +1024,21 @@ class Env {
         data: II1l1Ii
       } = await this.request(liiIIiII, l1llI1I1, lI1l1IiI);
       this.log("开卡结果: " + II1l1Ii.message);
-      if (["508", "510", "201", "9002"].includes(II1l1Ii.busiCode)) return await this.setOpenCardCache(iII11IIi), false;
+      if (["508", "510", "201", "9002"].includes(II1l1Ii.busiCode)) {
+        await this.setOpenCardCache(iII11IIi);
+        return false;
+      }
       if ((II1l1Ii?.["message"]?.["includes"]("火爆") || II1l1Ii?.["message"]?.["includes"]("失败")) && i111Ii1I < 3) {
         return await this.openCard(iII11IIi, I111I1II, il1iilIl, ++i111Ii1I);
       }
-      return II1l1Ii?.["code"] * 1 === 0 && II1l1Ii?.["busiCode"] * 1 === 0 && (await this.setOpenCardCache(iII11IIi)), true;
+      II1l1Ii?.["code"] * 1 === 0 && II1l1Ii?.["busiCode"] * 1 === 0 && (await this.setOpenCardCache(iII11IIi));
+      return true;
     } catch (Illl1lii) {
-      if ([403].includes(Illl1lii.response?.["status"]) && i111Ii1I < 3) return await this.routerProxy(0), await this.wait(1000, 2000), await this.openCard(iII11IIi, I111I1II, il1iilIl, ++i111Ii1I);
+      if ([403].includes(Illl1lii.response?.["status"]) && i111Ii1I < 3) {
+        await this.routerProxy(0);
+        await this.wait(1000, 2000);
+        return await this.openCard(iII11IIi, I111I1II, il1iilIl, ++i111Ii1I);
+      }
     }
   }
   ["isProxy"](I1iiilI = "493") {
@@ -885,14 +1057,24 @@ class Env {
       if (llliIiIl.includes("=json")) {
         let lIiIlI = JSON.stringify(iIiiiil.data),
           IIIIlIil = iIiiiil.data.data;
-        iIiiiil.data.data?.["list"] && (IIIIlIil = iIiiiil.data.data.list);
+        if (iIiiiil.data.data?.["list"]) {
+          IIIIlIil = iIiiiil.data.data.list;
+        }
         if (IIIIlIil) {
-          if (IIIIlIil[0]?.["port"]) I1ii1ill = true, this.log("获取到的IP:" + IIIIlIil[0].ip + ":" + IIIIlIil[0].port), await this.setProxy(IIIIlIil[0].ip + ":" + IIIIlIil[0].port);else {
+          if (IIIIlIil[0]?.["port"]) {
+            I1ii1ill = true;
+            this.log("获取到的IP:" + IIIIlIil[0].ip + ":" + IIIIlIil[0].port);
+            await this.setProxy(IIIIlIil[0].ip + ":" + IIIIlIil[0].port);
+          } else {
             const IIlI1iIi = /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+|[a-zA-Z0-9.-]+:\d+)/,
               iIilli11 = lIiIlI.match(IIlI1iIi);
             iIilli11 ? (this.log("获取到的IP:" + iIilli11[0]), I1ii1ill = true, await this.setProxy(iIilli11[0])) : (proxies.filter(III1l1lI => III1l1lI.index = Il1IIII.index)[0].close = true, this.log(JSON.stringify(lIiIlI)));
           }
-        } else this.log("M_WX_PROXY_URL" + (Il1IIII.index - 1 || "") + "代理获取异常，切换下一个"), proxies.filter(ilIll => ilIll.index = Il1IIII.index)[0].close = true, this.log(JSON.stringify(lIiIlI));
+        } else {
+          this.log("M_WX_PROXY_URL" + (Il1IIII.index - 1 || "") + "代理获取异常，切换下一个");
+          proxies.filter(ilIll => ilIll.index = Il1IIII.index)[0].close = true;
+          this.log(JSON.stringify(lIiIlI));
+        }
       } else {
         let IlIIIliI = iIiiiil.data.toString().replace("\r\n", "").replace("\n", ""),
           li1IIiil = IlIIIliI?.["includes"]("@") ? IlIIIliI.split("@")[0] : "";
@@ -974,14 +1156,18 @@ class Env {
       }
       if (type === 0) {
         let iIlIiI1i = await redis.lpop("IPS");
-        !iIlIiI1i && (await this.routerProxy(type));
+        if (!iIlIiI1i) {
+          await this.routerProxy(type);
+        }
         await this.setProxy(iIlIiI1i);
       }
       return;
     }
     this.log("开始从M_WX_PROXY_URL" + (this.proxy.index - 1 || "") + "获取代理");
     let I1iI1I1l = await this.getProxyByUrl(this.proxy);
-    !I1iI1I1l && (await this.routerProxy());
+    if (!I1iI1I1l) {
+      await this.routerProxy();
+    }
   }
   async ["checkCookie"](i1Il11ll) {
     let {
@@ -995,8 +1181,12 @@ class Env {
     return I1l1lIlI.islogin === "1";
   }
   ["desensitizeString"](liII11I) {
-    if (!liII11I) return "";
-    if (!this.desensitize) return liII11I || "";
+    if (!liII11I) {
+      return "";
+    }
+    if (!this.desensitize) {
+      return liII11I || "";
+    }
     if (liII11I.length <= 4) {
       return liII11I;
     }
@@ -1016,7 +1206,9 @@ class Env {
       } else {
         if (l111iIlI == "X") {
           i1lliii += lIl1liIi.charAt(Math.floor(Math.random() * lIl1liIi.length)).toUpperCase();
-        } else i1lliii += l111iIlI;
+        } else {
+          i1lliii += l111iIlI;
+        }
       }
     }
     return i1lliii;
@@ -1026,14 +1218,18 @@ class Env {
       let li1I111l = await this.api("/front/activity/loadFrontAward", {});
       if (li1I111l.succ) {
         this.super.prizeList = li1I111l.result || [];
-      } else this.log(li1I111l.message);
+      } else {
+        this.log(li1I111l.message);
+      }
     } else {
       let I11lIl1I = await this.api("/api/prize/drawPrize", {});
       if (I11lIl1I.resp_code !== 0) {
         this.log("获取奖品是失败");
         return;
       }
-      !this.super.prizeList && this.log(I11lIl1I.data?.["prizeInfo"]);
+      if (!this.super.prizeList) {
+        this.log(I11lIl1I.data?.["prizeInfo"]);
+      }
       this.super.prizeList = I11lIl1I.data?.["prizeInfo"] || [];
     }
   }
@@ -1042,7 +1238,9 @@ class Env {
     if (this.isAuthFailed || this.forBreak || this.super.exit) {
       throw new CustomError("逻辑终止 API");
     }
-    iIiiI111 > 0 && this.log("重试 " + iIiiI111 + " " + lIi1lII);
+    if (iIiiI111 > 0) {
+      this.log("重试 " + iIiiI111 + " " + lIi1lII);
+    }
     try {
       lIi1lII = ("/" + lIi1lII).replace("//", "/");
       const iiIli1li = this.super.urlPrefix ? ("/" + this.super.urlPrefix).replace("//", "/") : "";
@@ -1059,11 +1257,21 @@ class Env {
           "Referer": this.activityUrl + "&sid=" + this.uuid() + "&un_area=" + this.randomPattern("xx_xxxx_xxxx_xxxxx"),
           "User-Agent": this.UA
         };
-      Il1lIll?.["startsWith"]("ey") && (iIllll1.token = Il1lIll);
-      hdbTypes.includes(this.domain) && (lI1I11II = this.hdbBody(lIi1lII, lI1I11II, iIllll1));
-      jinggengcjTypes.includes(this.domain) && (lI1I11II = this.jinggengjcqBody(lIi1lII, lI1I11II));
+      if (Il1lIll?.["startsWith"]("ey")) {
+        iIllll1.token = Il1lIll;
+      }
+      if (hdbTypes.includes(this.domain)) {
+        lI1I11II = this.hdbBody(lIi1lII, lI1I11II, iIllll1);
+      }
+      if (jinggengcjTypes.includes(this.domain)) {
+        lI1I11II = this.jinggengjcqBody(lIi1lII, lI1I11II);
+      }
       if (this.super.defenseUrls && this.super.defenseUrls.includes(lIi1lII)) {
-        if (this.activityUrl.includes("interactsaas")) lI1I11II.nowTime = this.timestamp(), lI1I11II.actId = this.activityId, lI1I11II.consumePoints = lI1I11II.consumePoints || 0;else {
+        if (this.activityUrl.includes("interactsaas")) {
+          lI1I11II.nowTime = this.timestamp();
+          lI1I11II.actId = this.activityId;
+          lI1I11II.consumePoints = lI1I11II.consumePoints || 0;
+        } else {
           const l1i1lIi1 = new URLSearchParams(lI1I11II);
           lI1I11II = {};
           for (const [Iii1IIII, iIll1l11] of l1i1lIi1.entries()) {
@@ -1093,8 +1301,10 @@ class Env {
           lI1I11II = JSON.stringify(liIliiI);
         }
       }
-      if (/lzdz4-isv/.test(this.activityUrl)) for (let Ili111ii of Object.keys(this.tickets)) {
-        iIllll1[Ili111ii.replace("_", "").toLowerCase()] = this.tickets.get(Ili111ii);
+      if (/lzdz4-isv/.test(this.activityUrl)) {
+        for (let Ili111ii of Object.keys(this.tickets)) {
+          iIllll1[Ili111ii.replace("_", "").toLowerCase()] = this.tickets.get(Ili111ii);
+        }
       }
       let {
         data: ilII1Ili
@@ -1115,7 +1325,9 @@ class Env {
         }
       }
       if (this.super.defenseUrls && this.super.defenseUrls.includes(lIi1lII) && (!ilII1Ili || typeof ilII1Ili === "string" && ilII1Ili.length === 0) && iIiiI111 < 5) {
-        return await this.initPinToken(), this.log("ecy重试"), await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+        await this.initPinToken();
+        this.log("ecy重试");
+        return await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
       }
       if (!ilII1Ili) {
         return ilII1Ili;
@@ -1133,31 +1345,50 @@ class Env {
         this.putMsg("AUTH.FAILED.BLACK");
         throw new CustomError("AUTH.FAILED.BLACK");
       }
-      if (jinggengcjTypes.includes(this.domain) && Iliil1?.["includes"]("请稍后重试")) return ilII1Ili;
+      if (jinggengcjTypes.includes(this.domain) && Iliil1?.["includes"]("请稍后重试")) {
+        return ilII1Ili;
+      }
       if (new RegExp(reTryRegx).test(Iliil1) && iIiiI111 < 5) {
         return await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
       }
       if (/(您点的太快了|操作过于频繁)/.test(Iliil1) && iIiiI111 < 5) {
-        return await this.wait(5000, 6000), await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+        await this.wait(5000, 6000);
+        return await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
       }
       if (/(请求的数字签名不匹配|请求的数字签名已失效)/.test(Iliil1) && iIiiI111 < 5) {
-        return await this.login(this.isvToken), this.log("签名重试"), await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+        await this.login(this.isvToken);
+        this.log("签名重试");
+        return await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
       }
       if (Iliil1.includes("商家token过期") || Iliil1.includes("商家订购过期")) {
         this.putMsg("商家token过期");
         this.super.exit = true;
         throw new CustomError("商家token过期");
       }
-      if (iIiiI111 === 0 && /(您尚未开卡，请开卡后再来参与活动吧|活动仅限店铺会员参与哦)/.test(Iliil1)) return await this.openCard(), await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+      if (iIiiI111 === 0 && /(您尚未开卡，请开卡后再来参与活动吧|活动仅限店铺会员参与哦)/.test(Iliil1)) {
+        await this.openCard();
+        return await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+      }
       return ilII1Ili;
     } catch (Il1Iil1l) {
-      if (Il1Iil1l instanceof CustomError) throw new CustomError(Il1Iil1l.message);
-      this.log("api " + lIi1lII + " " + iIiiI111 + " " + (Il1Iil1l.response?.["status"] || "") + " " + Il1Iil1l.message);
-      if (iIiiI111 > 3) throw new CustomError(Il1Iil1l.message);
-      if (this.super.defenseUrls && this.super.defenseUrls.includes(lIi1lII) && [500].includes(Il1Iil1l.response?.["status"])) {
-        return this.log("ecy重试"), await this.initPinToken(), await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+      if (Il1Iil1l instanceof CustomError) {
+        throw new CustomError(Il1Iil1l.message);
       }
-      if (this.isProxy(Il1Iil1l.message)) return await this.routerProxy(), await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);else throw new CustomError(Il1Iil1l.message);
+      this.log("api " + lIi1lII + " " + iIiiI111 + " " + (Il1Iil1l.response?.["status"] || "") + " " + Il1Iil1l.message);
+      if (iIiiI111 > 3) {
+        throw new CustomError(Il1Iil1l.message);
+      }
+      if (this.super.defenseUrls && this.super.defenseUrls.includes(lIi1lII) && [500].includes(Il1Iil1l.response?.["status"])) {
+        this.log("ecy重试");
+        await this.initPinToken();
+        return await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+      }
+      if (this.isProxy(Il1Iil1l.message)) {
+        await this.routerProxy();
+        return await this.api(lIi1lII, IiIliIll, Il1lIll, i1IIl11I, ++iIiiI111);
+      } else {
+        throw new CustomError(Il1Iil1l.message);
+      }
     }
   }
   ["isMaster"](II1II1ll = this.ptpin) {
@@ -1175,8 +1406,13 @@ class Env {
     this.isMember = ![-1].includes(Ili1l1iI.result.grade);
     this.log("登录成功 " + this.isMember);
     this.aesBuyerNick = Ili1l1iI.result.aesBuyerNick;
-    !this.isMember && /partitionTeam/.test(this.activityUrl) && (await this.openCard(), this.isMember = true);
-    if (!this.isMaster(this.ptpin) && this.isMember && /inviteJoin/.test(this.activityUrl)) throw new CustomError("已经是会员无法助力");
+    if (!this.isMember && /partitionTeam/.test(this.activityUrl)) {
+      await this.openCard();
+      this.isMember = true;
+    }
+    if (!this.isMaster(this.ptpin) && this.isMember && /inviteJoin/.test(this.activityUrl)) {
+      throw new CustomError("已经是会员无法助力");
+    }
     await this.api("/front/activity/reportPVUV", {
       "source": "01",
       "token": this.isvToken
@@ -1197,13 +1433,17 @@ class Env {
     let l1llilll = il1i1iiI.result.isFavouriteShop;
     await this.isBlackShop();
     try {
-      !l1llilll && (await this.reportActionLog({
-        "actionType": "favouriteShop"
-      }));
+      if (!l1llilll) {
+        await this.reportActionLog({
+          "actionType": "favouriteShop"
+        });
+      }
     } catch (ilill1li) {
       this.log(ilill1li);
     }
-    this.super.prizeList.length <= 0 && (await this.getPrizeList());
+    if (this.super.prizeList.length <= 0) {
+      await this.getPrizeList();
+    }
     let IlIIIli = this.actStartTime - Date.now();
     if (IlIIIli > 0 && IlIIIli < 1000 * 60 * 3) {
       await this.wait(IlIIIli + 10);
@@ -1219,8 +1459,13 @@ class Env {
       this.super.exit = true;
       throw new CustomError("活动已结束");
     }
-    if (this.super.exit) throw new CustomError("垃圾活动");
-    this.super.prizeList && this.super.prizeList.length > 0 && this.super.prizeList.some(I1il111l => ["JD_GOODS", "JD_MARKET"].includes(I1il111l.awardType)) && (this.isMember = await this.openCard(), !this.isMember && this.log("开卡失败"));
+    if (this.super.exit) {
+      throw new CustomError("垃圾活动");
+    }
+    if (this.super.prizeList && this.super.prizeList.length > 0 && this.super.prizeList.some(I1il111l => ["JD_GOODS", "JD_MARKET"].includes(I1il111l.awardType))) {
+      this.isMember = await this.openCard();
+      !this.isMember && this.log("开卡失败");
+    }
     if (!this.isMember && !/inviteJoin/.test(this.activityUrl)) {
       this.putMsg("等级不足");
       throw new CustomError("等级不足");
@@ -1232,7 +1477,9 @@ class Env {
     if (liil1Ili.code == "200") {
       this.log(IIilIl1i?.["actionType"] + "操作成功");
     } else {
-      !liil1Ili.message.includes("已经关注过") && this.putMsg(liil1Ili.message);
+      if (!liil1Ili.message.includes("已经关注过")) {
+        this.putMsg(liil1Ili.message);
+      }
     }
   }
   async ["wx100Login"]() {
@@ -1265,32 +1512,46 @@ class Env {
     this.super.shopName = iliilIlI.data.shopName;
     let i1l1Ilii = iliilIlI.data.joinInfo.joinCodeInfo.joinCode,
       i1lIili1 = iliilIlI.data.joinInfo.joinCodeInfo.joinDes;
-    !this.basicInfo && (this.basicInfo = await this.api("/api/active/basicInfo", {
-      "activityId": this.activityId
-    }));
+    if (!this.basicInfo) {
+      this.basicInfo = await this.api("/api/active/basicInfo", {
+        "activityId": this.activityId
+      });
+    }
     this.super.actStartTime = this.basicInfo.data.startTime;
     this.super.actEndTime = this.basicInfo.data.endTime;
     this.super.actName = this.basicInfo.data.actName;
     await this.isBlackShop();
-    this.super.prizeList.length === 0 && (await this.getPrizeList());
-    if (!this.super.rule) try {
-      let {
-        data: IlIilI11
-      } = await this.api("/api/active/getRule", {});
-      this.super.rule = IlIilI11;
-    } catch (ilI1li1l) {
-      this.log("getRule" + ilI1li1l);
+    if (this.super.prizeList.length === 0) {
+      await this.getPrizeList();
     }
-    this.super.prizeList?.["length"] > 0 && this.super.prizeList?.["filter"](iilli1l1 => ![2, 102, /积分抽奖/.test(this.super.actName) ? 4 : 99999].includes(iilli1l1.prizeType) && iilli1l1.leftNum !== 0)["length"] === 0 && (this.putMsg("垃圾活动，积分"), this.super.ext = true);
+    if (!this.super.rule) {
+      try {
+        let {
+          data: IlIilI11
+        } = await this.api("/api/active/getRule", {});
+        this.super.rule = IlIilI11;
+      } catch (ilI1li1l) {
+        this.log("getRule" + ilI1li1l);
+      }
+    }
+    if (this.super.prizeList?.["length"] > 0 && this.super.prizeList?.["filter"](iilli1l1 => ![2, 102, /积分抽奖/.test(this.super.actName) ? 4 : 99999].includes(iilli1l1.prizeType) && iilli1l1.leftNum !== 0)["length"] === 0) {
+      this.putMsg("垃圾活动，积分");
+      this.super.ext = true;
+    }
     await this.wxJC();
     let IIiIII1i = this.super.actStartTime - Date.now();
-    if (IIiIII1i > 0 && IIiIII1i < 1000 * 60 * 3) await this.wait(IIiIII1i + 10);else {
+    if (IIiIII1i > 0 && IIiIII1i < 1000 * 60 * 3) {
+      await this.wait(IIiIII1i + 10);
+    } else {
       if (this.super.actStartTime > this.timestamp()) {
         this.putMsg("活动未开始");
         this.super.exit = true;
       }
     }
-    this.timestamp() > this.super.actEndTime && (this.putMsg("活动已结束"), this.super.exit = true);
+    if (this.timestamp() > this.super.actEndTime) {
+      this.putMsg("活动已结束");
+      this.super.exit = true;
+    }
     if (this.super.exit) {
       throw new CustomError("逻辑退出");
     }
@@ -1301,7 +1562,9 @@ class Env {
       console.log("follow" + ll1l1l1);
     }
     this.isMember = ["1001", "1004"].includes(i1l1Ilii);
-    if (["10070"].includes(this.activityType) && !["1005", "1006"].includes(i1l1Ilii) && !this.isMaster()) throw new CustomError("已是会员无法助力，退出");
+    if (["10070"].includes(this.activityType) && !["1005", "1006"].includes(i1l1Ilii) && !this.isMaster()) {
+      throw new CustomError("已是会员无法助力，退出");
+    }
     if (!this.isMember) {
       if (this.super.prizeList?.["length"] > 0 && this.super.prizeList?.["filter"](lIl11ii => [1, 3, 6, 8, 9, 10].includes(lIl11ii.prizeType) && lIl11ii.leftNum > 0)["length"] > 0) {
         this.isMember = await this.openCard();
@@ -1310,7 +1573,10 @@ class Env {
         }
       }
     }
-    !this.isMember && openCardTypes.includes(this.activityType) && (this.isMember = await this.openCard(), !this.isMember && this.log("开卡失败"));
+    if (!this.isMember && openCardTypes.includes(this.activityType)) {
+      this.isMember = await this.openCard();
+      !this.isMember && this.log("开卡失败");
+    }
     iliilIlI = await this.api("/api/user-info/login", {
       "status": "0",
       "activityId": this.activityId,
@@ -1335,15 +1601,19 @@ class Env {
     await this.initPinToken();
   }
   async ["taskToDo"](lIlllIi1) {
-    lIlllIi1.data.taskList.filter(lIl1il1i => ![8, 15, 13].includes(lIl1il1i.taskType * 1)).length === 0 && this.log("没有任务");
+    if (lIlllIi1.data.taskList.filter(lIl1il1i => ![8, 15, 13].includes(lIl1il1i.taskType * 1)).length === 0) {
+      this.log("没有任务");
+    }
     let i11ii1l = lIlllIi1.data.taskList;
     debugger;
     for (let iIli11i of i11ii1l.filter(l1liIlI => l1liIlI.status === 0 && (l1liIlI.completeCount < l1liIlI.finishNum || l1liIlI.completeCount < l1liIlI.maxNum)) || []) {
       try {
-        if ([1, 2, 4, 10, 12, 14].includes(iIli11i.taskType)) await this.api("/api/basic/task/toDo", {
-          "skuId": "",
-          "taskId": iIli11i.taskId
-        });else {
+        if ([1, 2, 4, 10, 12, 14].includes(iIli11i.taskType)) {
+          await this.api("/api/basic/task/toDo", {
+            "skuId": "",
+            "taskId": iIli11i.taskId
+          });
+        } else {
           if ([3, 5, 6, 7, 9].includes(iIli11i.taskType)) {
             let liIii1II = iIli11i.skuInfoVO.filter(iIIlIili => iIIlIili.status === 0);
             for (let iIll1ill = 0; iIll1ill < liIii1II.length && (iIll1ill < iIli11i.finishNum || iIll1ill < iIli11i.maxNum); iIll1ill++) {
@@ -1396,17 +1666,25 @@ class Env {
           status: li1llill,
           data: llI1Iill
         } = await this.request(IilIi1i, lll11IIl, lI1Iilil);
-      if (llI1Iill?.["token"]) await this.rcache(ii1Ii1i, llI1Iill.token, this.random(tokenCacheMin, tokenCacheMax) * 60 * 1000);else {
+      if (llI1Iill?.["token"]) {
+        await this.rcache(ii1Ii1i, llI1Iill.token, this.random(tokenCacheMin, tokenCacheMax) * 60 * 1000);
+      } else {
         if (llI1Iill?.["code"] === "3" && llI1Iill?.["errcode"] === 264) {
           this.putMsg("ck失效");
           throw new CustomError("ck失效");
-        } else this.log("实时获取token " + illili1l + ", " + JSON.stringify(llI1Iill));
+        } else {
+          this.log("实时获取token " + illili1l + ", " + JSON.stringify(llI1Iill));
+        }
       }
       this.isvToken = llI1Iill.token;
       return;
     } catch (Illi1Ii1) {
       if (Illi1Ii1 instanceof CustomError) {} else {
-        if (illili1l > 0 && this.isProxy(Illi1Ii1.message)) return this.log("第" + (isvTokenRetryCount - illili1l) + "去重试isvObfuscator接口,等待" + isvObfuscatorRetryWait + "秒"), await this.routerProxy(), await this.isvObfuscator(--illili1l);
+        if (illili1l > 0 && this.isProxy(Illi1Ii1.message)) {
+          this.log("第" + (isvTokenRetryCount - illili1l) + "去重试isvObfuscator接口,等待" + isvObfuscatorRetryWait + "秒");
+          await this.routerProxy();
+          return await this.isvObfuscator(--illili1l);
+        }
       }
     }
     throw new CustomError("isvToken获取失败");
@@ -1496,7 +1774,14 @@ class Env {
         "appname": "",
         "ridx": -1
       };
-    return iliIiII.cipher.sv = new Buffer.from(I1lIiI1I).toString("base64").split("").map(IIIIlll1 => IIlliIl[IIIIlll1] || IIIIlll1).join(""), iliIiII.cipher.ud = new Buffer.from(this._ruas(40)).toString("base64").split("").map(IIiIl1i1 => IIlliIl[IIiIl1i1] || IIiIl1i1).join(""), iliIiII.appname = "com.360buy.jdmobile", iliIiII.hdid = "JM9F1ywUPwflvMIpYPok0tt5k9kW4ArJEU3lfLhxBqw=", iliIiII.appname = "com.jd.jdmobilelite", iliIiII.hdid = "ViZLFbOc+bY6wW3m9/8iSFjgglIbmHPOGSM9aXIoBes=", iliIiII.ridx = 1, IiIiIii === "jd" ? "jdapp;iPhone;" + (this._ruaa([9, 10, 11], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5, 6, 7, 8], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5], 1)) + ";;;M/5.0;appBuild/168341;jdSupportDarkMode/0;ef/1;ep/" + encodeURIComponent(JSON.stringify(iliIiII)) + ";Mozilla/5.0 (iPhone; CPU iPhone OS " + I1lIiI1I.replace(/\./g, "_") + " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;" : "jdltapp;iPhone;" + (this._ruaa([4, 5, 6], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5], 1)) + ";;;M/5.0;hasUPPay/0;pushNoticeIsOpen/0;lang/zh_CN;hasOCPay/0;appBuild/1338;supportBestPay/0;jdSupportDarkMode/0;ef/1;ep/" + encodeURIComponent(JSON.stringify(iliIiII)) + ";Mozilla/5.0 (iPhone; CPU iPhone OS " + I1lIiI1I.replace(/./g, "_") + " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;";
+    iliIiII.cipher.sv = new Buffer.from(I1lIiI1I).toString("base64").split("").map(IIIIlll1 => IIlliIl[IIIIlll1] || IIIIlll1).join("");
+    iliIiII.cipher.ud = new Buffer.from(this._ruas(40)).toString("base64").split("").map(IIiIl1i1 => IIlliIl[IIiIl1i1] || IIiIl1i1).join("");
+    iliIiII.appname = "com.360buy.jdmobile";
+    iliIiII.hdid = "JM9F1ywUPwflvMIpYPok0tt5k9kW4ArJEU3lfLhxBqw=";
+    iliIiII.appname = "com.jd.jdmobilelite";
+    iliIiII.hdid = "ViZLFbOc+bY6wW3m9/8iSFjgglIbmHPOGSM9aXIoBes=";
+    iliIiII.ridx = 1;
+    return IiIiIii === "jd" ? "jdapp;iPhone;" + (this._ruaa([9, 10, 11], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5, 6, 7, 8], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5], 1)) + ";;;M/5.0;appBuild/168341;jdSupportDarkMode/0;ef/1;ep/" + encodeURIComponent(JSON.stringify(iliIiII)) + ";Mozilla/5.0 (iPhone; CPU iPhone OS " + I1lIiI1I.replace(/\./g, "_") + " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;" : "jdltapp;iPhone;" + (this._ruaa([4, 5, 6], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1) + "." + this._ruaa([0, 1, 2, 3, 4, 5], 1)) + ";;;M/5.0;hasUPPay/0;pushNoticeIsOpen/0;lang/zh_CN;hasOCPay/0;appBuild/1338;supportBestPay/0;jdSupportDarkMode/0;ef/1;ep/" + encodeURIComponent(JSON.stringify(iliIiII)) + ";Mozilla/5.0 (iPhone; CPU iPhone OS " + I1lIiI1I.replace(/./g, "_") + " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;";
   }
   ["_tk"]() {
     let iIiIl1I1 = function (iiIi1iI1) {
@@ -1526,7 +1811,9 @@ class Env {
     }
     for (var liiiliI = II1llIl1.length, lIllIl1 = Math.floor(liiiliI / 24), iIilli = "", ll1llI1l = 0; ll1llI1l < 24; ll1llI1l++) {
       var i111IIiI = (ll1llI1l + 1) * lIllIl1;
-      23 === ll1llI1l && (i111IIiI = liiiliI);
+      if (23 === ll1llI1l) {
+        i111IIiI = liiiliI;
+      }
       for (var il1lliI = II1llIl1.substring(ll1llI1l * lIllIl1, i111IIiI), lllIIi1l = [], ii1li1i1 = 0; ii1li1i1 < il1lliI.length; ii1li1i1++) {
         lllIIi1l.push(il1lliI.charCodeAt(ii1li1i1));
       }
@@ -1549,10 +1836,14 @@ class Env {
         for (var i1l1I1i1 = "", IiIIi1Ii = "", iI11ill = 0; iI11ill < 16; iI11ill++) {
           if (0 !== iI11ill) {
             for (var Il1i11l = 6 * iI11ill, l1I1iiIl = IliIlili.substring(Il1i11l, Il1i11l + 6), iiil1Iii = parseInt(l1I1iiIl, 2), iiI1Il = IiIIi1Ii.split(""), l11liI1 = 0; l11liI1 < iiI1Il.length; l11liI1++) {
-              "1" === iiI1Il[l11liI1] && (iiil1Iii = 63 & (iiil1Iii >> 6 - l11liI1 | iiil1Iii << l11liI1));
+              if ("1" === iiI1Il[l11liI1]) {
+                iiil1Iii = 63 & (iiil1Iii >> 6 - l11liI1 | iiil1Iii << l11liI1);
+              }
             }
             IiIIi1Ii = (63 & iiil1Iii).toString(2).padStart(6, "0");
-          } else IiIIi1Ii = IliIlili.substring(0, 6);
+          } else {
+            IiIIi1Ii = IliIlili.substring(0, 6);
+          }
           i1l1I1i1 += IiIIi1Ii;
         }
         for (var IIiiIlii = 0; IIiiIlii < 12; IIiiIlii++) {
@@ -1617,7 +1908,8 @@ class Env {
         }
       }
     };
-    return I1IIl1Il?.["indexOf"]("missionInviteList") > -1 && delete i1l1IlI1.params.admJson.actId, JSON.stringify(i1l1IlI1);
+    I1IIl1Il?.["indexOf"]("missionInviteList") > -1 && delete i1l1IlI1.params.admJson.actId;
+    return JSON.stringify(i1l1IlI1);
   }
   ["mpdzSign"](i1IIlil) {
     let iiI1Iil1 = "6cc5dbd8900e434b94c4bdb0c16348ed",
@@ -1653,13 +1945,19 @@ class Env {
           "actid": this.activityId
         }
       };
-    lIi1li && (lIi1li = llliI11);
-    !lii1ilI && (delete lIi1li.appJsonParams.buyerNick, delete lIi1li.sysParams.buyernick);
+    if (lIi1li) {
+      lIi1li = llliI11;
+    }
+    if (!lii1ilI) {
+      delete lIi1li.appJsonParams.buyerNick;
+      delete lIi1li.sysParams.buyernick;
+    }
     this.tickets.get("_sk") ? iI1I111._sk = this.tickets.get("_sk") : "";
     this.tickets.get("zxhd_aes_buyer_nick") ? iI1I111._dzf = this.tickets.get("zxhd_aes_buyer_nick") : "";
     let liIi1i1i = "actid" + this.activityId + "buyernick" + (lii1ilI || "undefined") + "sysmethod" + JSON.stringify(iliIi1ii).replace(/[^\u4e00-\u9fa5\w]/g, "") + "timestamp" + iil1ili,
       iI1lii1i = iI1I111._sk || "1111";
-    return lIi1li.sysParams.sign = CryptoJS.HmacSHA256(liIi1i1i, iI1lii1i).toString(CryptoJS.enc.Hex), lIi1li;
+    lIi1li.sysParams.sign = CryptoJS.HmacSHA256(liIi1i1i, iI1lii1i).toString(CryptoJS.enc.Hex);
+    return lIi1li;
   }
   ["filterUrl"](I1illl1I) {
     if (I1illl1I === null) {
@@ -1668,7 +1966,9 @@ class Env {
     const l11l11ii = new URLSearchParams(new URL(I1illl1I).search),
       II1l1I1 = [];
     for (const [Ii1ilI1, i1iliIil] of l11l11ii.entries()) {
-      if (keywords.includes(Ii1ilI1)) continue;
+      if (keywords.includes(Ii1ilI1)) {
+        continue;
+      }
       II1l1I1.push(Ii1ilI1 + "=" + i1iliIil);
     }
     if (II1l1I1.length > 0) {
@@ -1677,13 +1977,17 @@ class Env {
     return I1illl1I;
   }
   ["match"](lilIl1, IIlIili) {
-    lilIl1 = lilIl1 instanceof Array ? lilIl1 : [lilIl1];
+    lilIl1 instanceof Array ? lilIl1 = lilIl1 : lilIl1 = [lilIl1];
     for (let iII1i1lI of lilIl1) {
       const I111l1I = iII1i1lI.exec(IIlIili);
       if (I111l1I) {
         const I1I1lilI = I111l1I.length;
-        if (I1I1lilI === 1) return I111l1I;else {
-          if (I1I1lilI === 2) return I111l1I[1];else {
+        if (I1I1lilI === 1) {
+          return I111l1I;
+        } else {
+          if (I1I1lilI === 2) {
+            return I111l1I[1];
+          } else {
             const iiI1l1l1 = [];
             for (let lilili1i = 1; lilili1i < I1I1lilI; lilili1i++) {
               iiI1l1l1.push(I111l1I[lilili1i]);
@@ -1704,17 +2008,29 @@ class Env {
     this.activityUrl = this?.["activityUrl"]?.["replace"](/(isvjd|lzkjdz|cjhydz|lzkjdzisv|cjhydzisv)/g, iI11iilI => {
       switch (iI11iilI) {
         case "isvjd":
-          return "isvjcloud";
+          {
+            return "isvjcloud";
+          }
         case "lzkjdz":
-          return "lzkj";
+          {
+            return "lzkj";
+          }
         case "cjhydz":
-          return "cjhy";
+          {
+            return "cjhy";
+          }
         case "lzkjdzisv":
-          return "lzkj-isv";
+          {
+            return "lzkj-isv";
+          }
         case "cjhydzisv":
-          return "cjhy-isv";
+          {
+            return "cjhy-isv";
+          }
         default:
-          return iI11iilI;
+          {
+            return iI11iilI;
+          }
       }
     }) || "";
     this.domain = this.match(/https?:\/\/([^/]+)/, this.activityUrl);
@@ -1724,7 +2040,9 @@ class Env {
       this.activityId = this.getActivityId(this.activityUrl);
     }
     this.activityType = this.getQueryString(this.activityUrl, "activityType");
-    disableActivityType.includes(this.activityType) && this.putMsg("垃圾活动");
+    if (disableActivityType.includes(this.activityType)) {
+      this.putMsg("垃圾活动");
+    }
     this.venderId = this.getQueryString(this.activityUrl, "user_id") || this.getQueryString(this.activityUrl, "userId") || this.match(/\/m\/(\d+)\//, this.activityUrl) || this.getQueryString(this.activityUrl, "venderId");
     this.userId = this.venderId;
     this.shopId = this.getQueryString(this.activityUrl, "shop_id") || this.getQueryString(this.activityUrl, "shopid") || this.getQueryString(this.activityUrl, "shopId") || this.shopId;
@@ -1735,17 +2053,22 @@ class Env {
       this.activityType = Iilill1?.[1];
       this.templateCode = Iilill1?.[2];
     }
-    this.activityUrl && (this.urlPrefix = Object.keys(urlPrefixes).find(l1lI11ii => this.activityUrl.match(urlPrefixes[l1lI11ii])) || "");
+    if (this.activityUrl) {
+      this.urlPrefix = Object.keys(urlPrefixes).find(l1lI11ii => this.activityUrl.match(urlPrefixes[l1lI11ii])) || "";
+    }
   }
   ["rsaEncrypt"](iIIil1i, II11i1i, lII1iI1i) {
     iIIil1i = "-----BEGIN PUBLIC KEY-----\n" + iIIil1i + "\n-----END PUBLIC KEY-----";
     let il1iill = new NodeRSA(iIIil1i);
-    return il1iill.setOptions(II11i1i), il1iill.encrypt(lII1iI1i, "base64");
+    il1iill.setOptions(II11i1i);
+    return il1iill.encrypt(lII1iI1i, "base64");
   }
   ["getQueryString"](ii1iliiI, i11IIlIl) {
     let IiiiiIli = new RegExp("(^|[&?])" + i11IIlIl + "=([^&]*)(&|$)"),
       IliIiIii = ii1iliiI.match(IiiiiIli);
-    if (IliIiIii != null && IliIiIii[2] !== "undefined") return decodeURIComponent(IliIiIii[2]);
+    if (IliIiIii != null && IliIiIii[2] !== "undefined") {
+      return decodeURIComponent(IliIiIii[2]);
+    }
     return "";
   }
   ["getActivityId"](i1ilI1 = this.activityUrl) {
@@ -1758,7 +2081,9 @@ class Env {
         break;
       }
     }
-    return !Il1lI1I && (Il1lI1I = this.match(/\/(dz[a-zA-Z0-9]{28,32})/, i1ilI1)), this.activityId = Il1lI1I, this.activityId;
+    !Il1lI1I && (Il1lI1I = this.match(/\/(dz[a-zA-Z0-9]{28,32})/, i1ilI1));
+    this.activityId = Il1lI1I;
+    return this.activityId;
   }
   ["runTasks"]() {
     while (this.currentRunning < this.concurrencyLimit && !this.exit && this.taskQueue.length > 0) {
@@ -1822,7 +2147,13 @@ class Env {
         };
       }
       let iill1l1I = "";
-      if (I1lIIi) iill1l1I = "https://chat1.jd.com/api/checkChat?callback=jQuery7749929&venderId=" + I1lIIi + "&_=" + this.timestamp();else ll1111li && (iill1l1I = "https://chat1.jd.com/api/checkChat?callback=jQuery7749929&shopId=" + ll1111li + "&_=" + this.timestamp());
+      if (I1lIIi) {
+        iill1l1I = "https://chat1.jd.com/api/checkChat?callback=jQuery7749929&venderId=" + I1lIIi + "&_=" + this.timestamp();
+      } else {
+        if (ll1111li) {
+          iill1l1I = "https://chat1.jd.com/api/checkChat?callback=jQuery7749929&shopId=" + ll1111li + "&_=" + this.timestamp();
+        }
+      }
       let i1l11lIl = await this.request(iill1l1I, {
         "authority": "chat1.jd.com",
         "Accept": "*/*",
@@ -1834,7 +2165,10 @@ class Env {
         "referer": "https://mall.jd.com/shopBrandMember-" + (I1lIIi || ll1111li) + ".html"
       });
       const lII1Ii1i = JSON.parse(i1l11lIl?.["data"]?.["replace"](/^jQuery\d+\(/, "")?.["replace"](/\);$/, "") || "{}");
-      return this.super.shopName = lII1Ii1i.seller, this.super.shopId = lII1Ii1i.shopId, this.super.venderId = lII1Ii1i.venderId, {
+      this.super.shopName = lII1Ii1i.seller;
+      this.super.shopId = lII1Ii1i.shopId;
+      this.super.venderId = lII1Ii1i.venderId;
+      return {
         "shopId": lII1Ii1i.shopId,
         "venderId": lII1Ii1i.venderId,
         "shopName": lII1Ii1i.seller
@@ -1847,29 +2181,33 @@ class Env {
     try {
       return fs.readFileSync(IIll1l1).toString();
     } catch (iilil1i) {
-      return console.log(IIll1l1, "文件不存在进行创建"), this.writeFileSync(IIll1l1, ""), "";
+      console.log(IIll1l1, "文件不存在进行创建");
+      this.writeFileSync(IIll1l1, "");
+      return "";
     }
   }
   ["writeFileSync"](iilIiiil, l1i1I1Ii) {
     fs.writeFileSync(iilIiiil, l1i1I1Ii);
   }
   async ["auth"]() {
-    if (this.activityUrl) try {
-      let {
-        data: i11lilil
-      } = await this.request("http://43.138.16.15:7706/auth", {
-        "Cookie": "authority",
-        "auth": apiToken,
-        "_vs": this.superVersion,
-        "_cs": cookies?.["length"] || 0
-      }, {
-        "data": this.activityUrl,
-        "_ph": this.filename
-      });
-      this.log(Object.keys(i11lilil.data.fn).length);
-      this.fn = i11lilil.data.fn;
-      this.log(Object.keys(i11lilil.data.fn).length);
-    } catch (Il11liii) {}
+    if (this.activityUrl) {
+      try {
+        let {
+          data: i11lilil
+        } = await this.request("http://43.138.16.15:7706/auth", {
+          "Cookie": "authority",
+          "auth": apiToken,
+          "_vs": this.superVersion,
+          "_cs": cookies?.["length"] || 0
+        }, {
+          "data": this.activityUrl,
+          "_ph": this.filename
+        });
+        this.log(Object.keys(i11lilil.data.fn).length);
+        this.fn = i11lilil.data.fn;
+        this.log(Object.keys(i11lilil.data.fn).length);
+      } catch (Il11liii) {}
+    }
   }
   async ["calculateAndWait"](illIIIli) {
     const il11lIiI = new Date(illIIIli),
@@ -1879,7 +2217,10 @@ class Env {
     if (IilliiI > 60) {
       const i11i1i = IilliiI - 60;
       this.log("超过1分钟，还差 " + i11i1i + " 秒");
-    } else this.log("计算距离下一分钟的等待时间 " + IilliiI + "秒"), await this.wait(I1IllIll);
+    } else {
+      this.log("计算距离下一分钟的等待时间 " + IilliiI + "秒");
+      await this.wait(I1IllIll);
+    }
   }
   ["isMasterRunMode"]() {
     return this.runMode === "master" || this.super?.["runMode"] === "master";
@@ -1913,7 +2254,10 @@ class Env {
       }
       await this.filterCookie();
       this.log("动态设置车头,预设数量:" + this.masterPins.length + " 纠正数量:" + this.masterNum);
-      this.isMasterRunMode() && (this.concurrencyLimit = this.masterNum, cookies = cookies.slice(0, this.masterNum));
+      if (this.isMasterRunMode()) {
+        this.concurrencyLimit = this.masterNum;
+        cookies = cookies.slice(0, this.masterNum);
+      }
       this.cookies = cookies;
       this.log("当前并发量:" + this.concurrencyLimit + " 车头数:" + this.masterNum + " 总任务数:" + this.cookies.length);
       for (let il1IilI1 = 0; il1IilI1 < this.cookies.length; il1IilI1++) {
@@ -1947,11 +2291,21 @@ class Env {
         }
       }
       try {
-        this.rule && this.log(this.rule);
-        lI1l1i.length > 0 && lI1l1i.push("");
-        this.actName && lI1l1i.push("活动名称:" + this.actName);
-        this.shopName && lI1l1i.push("#" + this.shopName);
-        this.shopId && this.venderId && lI1l1i.push("店铺信息:" + this.shopId + "_" + this.venderId);
+        if (this.rule) {
+          this.log(this.rule);
+        }
+        if (lI1l1i.length > 0) {
+          lI1l1i.push("");
+        }
+        if (this.actName) {
+          lI1l1i.push("活动名称:" + this.actName);
+        }
+        if (this.shopName) {
+          lI1l1i.push("#" + this.shopName);
+        }
+        if (this.shopId && this.venderId) {
+          lI1l1i.push("店铺信息:" + this.shopId + "_" + this.venderId);
+        }
         if (this.actStartTime || this.actEndTime) {
           if (this.actStartTime && !("" + this.actStartTime).includes("-")) {
             this.actStartTime = this.formatDate(this.actStartTime, "yyyy-MM-dd HH:mm:ss");
@@ -1966,7 +2320,10 @@ class Env {
         } catch (lIllIIil) {
           console.log(lIllIIil);
         }
-        (this.shopId || this.userId || this.venderId) && (lI1l1i.push(""), lI1l1i.push("https://shop.m.jd.com/shop/home?shopId=" + (this.shopId || this.userId || this.venderId || "")));
+        if (this.shopId || this.userId || this.venderId) {
+          lI1l1i.push("");
+          lI1l1i.push("https://shop.m.jd.com/shop/home?shopId=" + (this.shopId || this.userId || this.venderId || ""));
+        }
       } catch (lIiilill) {
         console.log("after error" + lIiilill.message);
       }
@@ -1991,18 +2348,28 @@ class Env {
   async ["buildAccount"]() {
     let l1lliiII = "";
     try {
-      if (mode) l1lliiII = this.readFileSync("/home/magic/Work/wools/doc/account.json");else {
-        if (fs.existsSync("utils/account.json")) l1lliiII = this.readFileSync("utils/account.json");else fs.existsSync("/jd/config/account.json") ? l1lliiII = this.readFileSync("/jd/config/account.json") : l1lliiII = this.readFileSync("account.json");
+      if (mode) {
+        l1lliiII = this.readFileSync("/home/magic/Work/wools/doc/account.json");
+      } else {
+        if (fs.existsSync("utils/account.json")) {
+          l1lliiII = this.readFileSync("utils/account.json");
+        } else {
+          fs.existsSync("/jd/config/account.json") ? l1lliiII = this.readFileSync("/jd/config/account.json") : l1lliiII = this.readFileSync("account.json");
+        }
       }
-      l1lliiII && JSON.parse(l1lliiII).forEach(i1IlIll => {
-        this.accounts[i1IlIll.pt_pin] = i1IlIll;
-      });
+      if (l1lliiII) {
+        JSON.parse(l1lliiII).forEach(i1IlIll => {
+          this.accounts[i1IlIll.pt_pin] = i1IlIll;
+        });
+      }
     } catch (I1llii11) {
       console.log("account.json读取异常", I1llii11);
     }
   }
   async ["_algo"](iiiillll = 0) {
-    if (/(activityType|jinggeng|hdb-isv|jingyun-rc)/.test(this.activityUrl)) return;
+    if (/(activityType|jinggeng|hdb-isv|jingyun-rc)/.test(this.activityUrl)) {
+      return;
+    }
     let lII1lIIl = {
       "Accept-Encoding": "gzip, deflate, br",
       "Connection": "keep-alive",
@@ -2032,11 +2399,17 @@ class Env {
       }
     } catch (ii1IIli) {
       this.log("_algo " + ii1IIli.message);
-      iiiillll < 3 && this.isProxy(ii1IIli.message) && (await this.routerProxy(0), this.log("493去重试，第" + iiiillll + "次重试..."), await this._algo(++iiiillll));
+      if (iiiillll < 3 && this.isProxy(ii1IIli.message)) {
+        await this.routerProxy(0);
+        this.log("493去重试，第" + iiiillll + "次重试...");
+        await this._algo(++iiiillll);
+      }
     }
   }
   async ["wait"](I1liIili, llI1iil) {
-    if (I1liIili <= 0) return;
+    if (I1liIili <= 0) {
+      return;
+    }
     return llI1iil ? new Promise(i1iII1I => setTimeout(i1iII1I, this.random(I1liIili, llI1iil))) : new Promise(iIII1l1 => setTimeout(iIII1l1, I1liIili));
   }
   async ["forceQuit"](IIiili = parseInt(process.env?.["M_TIMEOUT"] || 3)) {
